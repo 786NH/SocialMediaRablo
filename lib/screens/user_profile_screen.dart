@@ -1,43 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '/api/api_services.dart';
-import '/models/user_model.dart';
-import '/app_data.dart';
+import 'package:social/controller/user_profile_screen_controller.dart';
 
 class UserProfileScreen extends StatelessWidget {
   final int userId;
-  final ApiService _apiService = ApiService();
 
-  UserProfileScreen({required this.userId, Key? key}) : super(key: key);
-
-  Future<void> _fetchUsers() async {
-    try {
-      final users = await _apiService.fetchUsers();
-      AppData.instance.setUsers(users);
-    } catch (e) {
-      Get.snackbar('Error', e.toString());
-    }
+  UserProfileScreen({required this.userId, Key? key}) : super(key: key){
+    Get.put(UserProfileScreenController(userId: userId));
   }
-
+  
   @override
   Widget build(BuildContext context) {
+    final UserProfileScreenController userProfileScreenController = Get.find();
     return Scaffold(
       appBar: AppBar(title: const Text('User Profile')),
-      body: FutureBuilder(
-        future: _fetchUsers(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
-
-          final users = AppData.instance.getUsers;
-          final user = users?.firstWhere((u) => u.id == userId, orElse: () => UserModel(id: 0, name: 'Unknown', username: 'N/A', email: 'N/A', phone: 'N/A', website: 'N/A'));
-
-          if (user == null || user.id == 0) {
-            return const Center(child: Text('User not found.'));
-          }
+      body: Obx( (){
+        final user = userProfileScreenController.user.value;
+          if(user==null){
+           return const Center(child: CircularProgressIndicator());
+       }
+       
 
           return Padding(
             padding: const EdgeInsets.all(8.0),
@@ -50,8 +32,10 @@ class UserProfileScreen extends StatelessWidget {
               ],
             ),
           );
-        },
-      ),
-    );
+  })
+          
+        
+      );
+  
   }
 }

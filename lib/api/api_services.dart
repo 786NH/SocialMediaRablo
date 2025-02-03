@@ -8,10 +8,17 @@ class ApiService {
   final Dio _dio = Dio();
 
   Future<List<PostModel>> fetchPosts() async {
+    print("4");
     try {
+      print("5");
       final response = await _dio.get('https://jsonplaceholder.typicode.com/posts');
+      print("5");
       return (response.data as List).map((json) => PostModel.fromJson(json)).toList();
-    } catch (e) {
+    } on DioError catch (e) {
+      print("DioError: ${e.response?.statusCode ?? 'Unknown'} - ${e.message}");
+      throw AppExceptions('Failed to fetch posts: ${e.message}');}
+    catch (e) {
+      print("6");
       throw AppExceptions('Failed to fetch posts');
     }
   }
@@ -26,6 +33,7 @@ class ApiService {
   }
 
   Future<List<UserModel>> fetchUsers() async {
+    
     try {
       final response = await _dio.get('https://jsonplaceholder.typicode.com/users');
       return (response.data as List).map((json) => UserModel.fromJson(json)).toList();
@@ -34,9 +42,10 @@ class ApiService {
     }
   }
 
-  Future<void> createPost(PostModel post) async {
+  Future<PostModel> createPost(PostModel post) async {
     try {
-      await _dio.post('https://jsonplaceholder.typicode.com/posts', data: post);
+     final response = await _dio.post('https://jsonplaceholder.typicode.com/posts', data: post.toJson());
+       return PostModel.fromJson(response.data);
     } catch (e) {
       throw AppExceptions('Failed to create post');
     }
